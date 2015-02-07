@@ -26,13 +26,13 @@ public interface CalculatorService {
 }
 ```
 
-Instantiate a client, client to broker communication is two way.
+Instantiate a client, the client will require an MQTT broker URL.
 
 ```java
-Client client = new Client(brokerURL, localHostname, localPort);
+MqttDrpcClient client = new MqttDrpcClient("tcp://iot.eclipse.org:1883");
 ```
 
-Notify the broker we have a `CalculatorService` that other clients can talk to.
+Publish the service, this will create MQTT subscriptions.
 
 ```java
 client.publish(CalculatorService.class, // functionality to expose
@@ -42,11 +42,10 @@ client.publish(CalculatorService.class, // functionality to expose
 
 ## Clients
 
-Instantiate a client, client to broker communication is two way. Create a service connector using the new client.
+Instantiate a client, the client will require an MQTT broker URL.
 
 ```java
-Client client = new Client(brokerURL, localHostname, localPort);
-ServiceConnector<CalculatorService> connector = client.connector(CalculatorService.class);
+MqttDrpcClient client = new MqttDrpcClient("tcp://iot.eclipse.org:1883");
 ```
 
 With the connector we can make distributed calls, with regular interfaces, and nice Java 8 syntax to go along with it. This example will call every CalculatorService ( registered as described earlier ), and then logs any results it gets.
