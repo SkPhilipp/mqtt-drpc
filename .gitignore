@@ -1,0 +1,23 @@
+bin/
+gen/
+target/
+test-output/
+gen-nodejs/
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+.settings/
+# PDT-specific
+.buildpath
+*.iml
+.idea/
+.log
+node_modules/
+npm-debug.log
+.vagrant/**/*
+.config/
