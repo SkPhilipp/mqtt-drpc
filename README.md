@@ -48,6 +48,12 @@ Instantiate a client, the client will require an MQTT broker URL.
 MqttDrpcClient client = new MqttDrpcClient("tcp://iot.eclipse.org:1883");
 ```
 
+Obtain a connector for your interface, this will allow you to make targeted and distributed remote procedure calls using the client's configuration.
+
+```java
+ServiceConnector<CalculatorService> connector = client.connector(CalculatorService.class);
+```
+
 With the connector we can make distributed calls, with regular interfaces, and nice Java 8 syntax to go along with it. This example will call every CalculatorService ( registered as described earlier ), and then logs any results it gets.
 
 ```java
