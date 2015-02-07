@@ -148,10 +148,15 @@ public class MqttDrpcClient {
                     Topic callback = topicBuilder.callback(messageId);
                     sampleClient.subscribe(callback.getTopic());
                     SilentCloseable closeable = serviceHost.register(callback.getTopic(), (callbackMetadata, content) -> {
-                        List<Class<?>> bodyTypes = Arrays.asList(method.getReturnType());
-                        MqttDrpcPackets.Packet packet = mqttDrpcPackets.read(content, bodyTypes);
-                        Object result = packet.getBody()[0];
-                        consumer.accept((R) result);
+                        if (method.getReturnType() == void.class) {
+                            List<Class<?>> bodyTypes = Arrays.asList(method.getReturnType());
+                            MqttDrpcPackets.Packet packet = mqttDrpcPackets.read(content, bodyTypes);
+                            Object result = packet.getBody()[0];
+                            consumer.accept((R) result);
+                        }
+                        else {
+                            consumer.accept(null);
+                        }
                     });
                     MqttDrpcClient.this.send(messageId, topic, arguments);
                     return closeable;
