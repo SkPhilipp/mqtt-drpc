@@ -71,7 +71,7 @@ public class MqttDrpcClient {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         MqttDrpcPackets.Packet packet = new MqttDrpcPackets.Packet();
         packet.setMessageId(messageId);
-        packet.setBody(content);
+        packet.setBody(content == null ? new Object[]{} : content);
         mqttDrpcPackets.write(outputStream, packet);
         MqttMessage message = new MqttMessage(outputStream.toByteArray());
         message.setQos(qos);
