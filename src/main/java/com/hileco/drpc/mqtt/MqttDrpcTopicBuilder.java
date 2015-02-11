@@ -1,26 +1,29 @@
 package com.hileco.drpc.mqtt;
 
-import com.hileco.drpc.transport.Topic;
-import com.hileco.drpc.transport.TopicBuilder;
+import java.lang.reflect.Method;
 
-public class MqttDrpcTopicBuilder implements TopicBuilder {
+/**
+ * Constructs topics out of identifyable service operations and callbacks.
+ * <p>
+ * Services should be published under these topics, callbacks registered under these topics and messages sent to these topics.
+ *
+ * @author Philipp Gayret
+ */
+public class MqttDrpcTopicBuilder {
 
     private static final String SERVICE = "s";
     private static final String CALLBACK = "c";
 
-    @Override
-    public Topic operation(String service, String operation) {
-        return () -> String.format("%s/%s/%s", SERVICE, service, operation);
+    public String operation(Class<?> service, Method operation) {
+        return String.format("%s/%s/%s", SERVICE, service.getName(), operation.getName());
     }
 
-    @Override
-    public Topic operation(String service, String operation, String identifier) {
-        return () -> String.format("%s/%s/%s/%s", SERVICE, service, operation, identifier);
+    public String operation(Class<?> service, Method operation, String identifier) {
+        return String.format("%s/%s/%s/%s", SERVICE, service.getName(), operation.getName(), identifier);
     }
 
-    @Override
-    public Topic callback(String messageId) {
-        return () -> String.format("%s/%s", CALLBACK, messageId);
+    public String callback(String messageId) {
+        return String.format("%s/%s", CALLBACK, messageId);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.hileco.drpc.reflection;
 
+import com.hileco.drpc.api.ServiceConnector;
 import com.hileco.drpc.transport.SilentCloseable;
 
 import java.lang.reflect.Method;
@@ -8,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Implementation of {@link ServiceConnector}, delegating transport calls to a given {@link com.hileco.drpc.transport.ServiceHost}.
+ * Implementation of {@link com.hileco.drpc.api.ServiceConnector}, delegating transport calls to a given {@link com.hileco.drpc.transport.ServiceHost}.
  *
  * @param <T> remote service type
  * @author Philipp Gayret
@@ -16,6 +17,7 @@ import java.util.function.Function;
 public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
 
     private static final Object NO_RESULT = new Object();
+
     public static final int TIMEOUT = 60000;
 
     private final Class<T> type;
@@ -24,12 +26,18 @@ public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
         this.type = type;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public <R> SilentCloseable drpc(Function<T, R> invoker, Consumer<R> consumer) {
         Invocation invocation = Invocation.one(type, invoker::apply);
         return this.call(type, invocation.getMethod(), invocation.getArguments(), consumer);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @SuppressWarnings("all")
     @Override
     public T connect(String identifier) {

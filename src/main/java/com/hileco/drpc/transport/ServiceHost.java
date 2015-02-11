@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A very simple service host, allowing for services to be registered by identifier, and connected to.
@@ -51,6 +48,13 @@ public class ServiceHost {
         }
     }
 
+    /**
+     * Accepts a content stream for a given topic, forwards the stream to any active consumers for the given topic.
+     *
+     * @param topic   the consumers' topic
+     * @param content a content stream
+     * @throws IOException
+     */
     public void accept(String topic, InputStream content) throws IOException {
         List<MessageReceiver> messageReceivers = this.consumers.get(topic);
         if (messageReceivers != null) {
@@ -63,6 +67,21 @@ public class ServiceHost {
                 }
             });
         }
+    }
+
+    /**
+     * @return all unique topics for which a consumer exists
+     */
+    public Set<String> topics() {
+        return Collections.unmodifiableSet(consumers.keySet());
+    }
+
+    /**
+     * @param topic the consumers' topic
+     * @return all consumers registered for the topic
+     */
+    public List<MessageReceiver> consumers(String topic) {
+        return Collections.unmodifiableList(consumers.get(topic));
     }
 
 }

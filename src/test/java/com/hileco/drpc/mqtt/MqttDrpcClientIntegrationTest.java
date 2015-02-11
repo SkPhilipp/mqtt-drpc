@@ -1,6 +1,6 @@
 package com.hileco.drpc.mqtt;
 
-import com.hileco.drpc.reflection.ServiceConnector;
+import com.hileco.drpc.api.ServiceConnector;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -42,9 +42,10 @@ public class MqttDrpcClientIntegrationTest {
     @Test
     public void test() throws MqttException {
         MqttDrpcClient mqttDrpcClient = new MqttDrpcClient(broker);
-        mqttDrpcClient.publish(CalculatorInterface.class, identifier, (a, b) -> a + b);
-        ServiceConnector<CalculatorInterface> connector = mqttDrpcClient.connector(CalculatorInterface.class);
-        CalculatorInterface remoteCalculator = connector.connect(identifier);
+        mqttDrpcClient.connect();
+        mqttDrpcClient.publish(CalculatorService.class, identifier, (a, b) -> a + b);
+        ServiceConnector<CalculatorService> connector = mqttDrpcClient.connector(CalculatorService.class);
+        CalculatorService remoteCalculator = connector.connect(identifier);
         LOG.info("Starting test, this may take a while");
         Long start = System.currentTimeMillis();
         Integer limit = 100;

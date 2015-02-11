@@ -5,7 +5,7 @@ package com.hileco.drpc.mqtt;
  *
  * @author Philipp Gayret
  */
-public interface CalculatorInterface {
+public interface CalculatorService {
 
     public Integer add(Integer a, Integer b);
 
