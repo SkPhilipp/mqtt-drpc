@@ -1,6 +1,6 @@
 package com.hileco.drpc.reflection;
 
-import com.hileco.drpc.transport.SilentCloseable;
+import com.hileco.drpc.generic.SilentCloseable;
 import org.junit.Assert;
 import org.junit.Test;
 

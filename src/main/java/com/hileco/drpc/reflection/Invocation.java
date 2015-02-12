@@ -16,7 +16,6 @@ public class Invocation {
     private final Method method;
     private final Object[] arguments;
 
-
     /**
      * Returns the list of invocations made on the proxy object passed to the given `invoker` function.
      * <p>

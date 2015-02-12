@@ -1,7 +1,7 @@
 package com.hileco.drpc.reflection;
 
-import com.hileco.drpc.api.ServiceConnector;
-import com.hileco.drpc.transport.SilentCloseable;
+import com.hileco.drpc.generic.ServiceConnector;
+import com.hileco.drpc.generic.SilentCloseable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Implementation of {@link com.hileco.drpc.api.ServiceConnector}, delegating transport calls to a given {@link com.hileco.drpc.transport.ServiceHost}.
+ * Implementation of {@link com.hileco.drpc.generic.ServiceConnector}, delegating transport calls to a given {@link com.hileco.drpc.generic.ServiceHost}.
  *
  * @param <T> remote service type
  * @author Philipp Gayret

@@ -1,7 +1,7 @@
 package com.hileco.drpc.mqtt;
 
 /**
- * An example interface to publish and invoke using an {@link com.hileco.drpc.mqtt.MqttDrpcClient}.
+ * An example interface to publish and invoke using an {@link MqttDrpcClient}.
  *
  * @author Philipp Gayret
  */

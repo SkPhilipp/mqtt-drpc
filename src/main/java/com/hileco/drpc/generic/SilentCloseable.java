@@ -1,4 +1,4 @@
-package com.hileco.drpc.transport;
+package com.hileco.drpc.generic;
 
 /**
  * {@link AutoCloseable}, however defined as to never throw an exception.

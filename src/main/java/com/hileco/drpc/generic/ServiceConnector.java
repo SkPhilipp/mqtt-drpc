@@ -1,6 +1,6 @@
-package com.hileco.drpc.api;
+package com.hileco.drpc.generic;
 
-import com.hileco.drpc.transport.SilentCloseable;
+import com.hileco.drpc.generic.SilentCloseable;
 
 import java.util.function.Consumer;
 import java.util.function.Function;

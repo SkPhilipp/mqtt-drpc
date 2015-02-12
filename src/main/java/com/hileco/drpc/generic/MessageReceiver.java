@@ -1,4 +1,4 @@
-package com.hileco.drpc.transport;
+package com.hileco.drpc.generic;
 
 import java.io.IOException;
 import java.io.InputStream;

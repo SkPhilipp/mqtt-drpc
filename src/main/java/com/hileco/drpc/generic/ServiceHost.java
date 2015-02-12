@@ -1,4 +1,4 @@
-package com.hileco.drpc.transport;
+package com.hileco.drpc.generic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
- * A very simple service host, allowing for services to be registered by identifier, and connected to.
+ * A simple service host, allowing for services to be registered by identifier, and connected to.
  *
  * @author Philipp Gayret
  */
@@ -67,21 +67,6 @@ public class ServiceHost {
                 }
             });
         }
-    }
-
-    /**
-     * @return all unique topics for which a consumer exists
-     */
-    public Set<String> topics() {
-        return Collections.unmodifiableSet(consumers.keySet());
-    }
-
-    /**
-     * @param topic the consumers' topic
-     * @return all consumers registered for the topic
-     */
-    public List<MessageReceiver> consumers(String topic) {
-        return Collections.unmodifiableList(consumers.get(topic));
     }
 
 }

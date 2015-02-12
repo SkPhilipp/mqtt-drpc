@@ -1,9 +1,9 @@
-package com.hileco.drpc.format;
+package com.hileco.drpc.reflection;
 
 import java.io.Serializable;
 
 /**
- * An example of a basic object useable for serialization by an {@link ArgumentsStreamer}.
+ * An example of a basic object useable for serialization by an {@link com.hileco.drpc.reflection.ArgumentsStreamer}.
  *
  * @author Philipp Gayret
  */

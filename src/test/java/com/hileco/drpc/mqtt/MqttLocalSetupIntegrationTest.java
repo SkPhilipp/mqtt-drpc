@@ -26,7 +26,7 @@ public class MqttLocalSetupIntegrationTest {
     /**
      * Verifies that a broker can be connected to.
      */
-    @Ignore(value = "Integration test, must only be used to verify connectivity to a broker")
+    @Ignore(value = "Integration test, relies on a local broker")
     @Test
     public void test() throws MqttException {
         MemoryPersistence persistence = new MemoryPersistence();
