@@ -22,7 +22,7 @@ public class MqttDrpcClientBuilder {
     public static final int DEFAULT_MILLISECONDS_TIME_TO_WAIT_LIMIT = 5000;
     public static final int DEFAULT_SECONDS_KEEP_ALIVE_INTERVAL = 30;
     public static final int DEFAULT_LEVEL_QUALITY_OF_SERVICE = 2;
-    public static final int DEFAULT_MAX_THREADS = 50;
+    public static final int DEFAULT_MAX_THREADS = 10;
     public static final int DEFAULT_RETRY_LIMIT = 5;
 
     private String clientId;
@@ -47,6 +47,11 @@ public class MqttDrpcClientBuilder {
         this.mqttDrpcFailureHandler = new MqttDrpcFailureHandler() {
             @Override
             public boolean shouldRetry(Exception cause, MqttDrpcTask task) {
+                if(cause instanceof MqttException) {
+                    if(((MqttException)cause).getReasonCode() == 32202) {
+                        return true;
+                    }
+                }
                 return task.getRetries() < DEFAULT_RETRY_LIMIT;
             }
 

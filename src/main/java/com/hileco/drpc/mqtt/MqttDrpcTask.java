@@ -46,9 +46,11 @@ public class MqttDrpcTask {
                     retries++;
                     start();
                 } else {
-                    this.failure = e;
-                    this.completed = true;
-                    this.monitor.notifyAll();
+                    synchronized (monitor) {
+                        this.failure = e;
+                        this.completed = true;
+                        this.monitor.notifyAll();
+                    }
                 }
             }
         });

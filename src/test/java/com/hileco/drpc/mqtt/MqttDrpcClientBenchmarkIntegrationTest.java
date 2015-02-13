@@ -25,22 +25,30 @@ public class MqttDrpcClientBenchmarkIntegrationTest {
      * <p>
      * Performs this verification serially until a limit is reached and then outputs some basic benchmarks.
      * <p>
-     * Benchmarks do not account for:
+     * Benchmark does not account for:
      * - Quality of service messages
      * - Subscriptions made ( 1 per callback )
      * <p>
      * Bechmark counts messages as well as and callback messages.
      * <p>
-     * Each message goes through the process of:
-     * - Serialisation
-     * - Transfer to broker
+     * Each service invocation includes:
+     * - Arguments serialisation
+     * - Subscribe to callback topic on broker as client
+     * - Transfer to broker as client, on service topic
      * - Processing by broker
-     * - Receiving from broker
-     * - Deserialisation
+     * - Receiving from broker as service
+     * - Arguments deserialisation
+     * - Service implementation call
+     * - Result serialisation
+     * - Transfer to broker as service, on callback topic
+     * - Receiving from broker as client
+     * - Result deserialisation
+     * - Unsubscribing from callback topic on broker as client
+     * - Returning result
      */
     @Ignore(value = "Integration test, relies on a local broker")
     @Test
-    public void test() throws MqttException {
+    public void test() throws MqttException, InterruptedException {
         MqttDrpcClient mqttDrpcClient = new MqttDrpcClientBuilder().build(broker);
         mqttDrpcClient.connect();
         mqttDrpcClient.publish(CalculatorService.class, identifier, (a, b) -> a + b);
@@ -48,8 +56,9 @@ public class MqttDrpcClientBenchmarkIntegrationTest {
         CalculatorService remoteCalculator = connector.connect(identifier);
         LOG.info("Starting test, this may take a while");
         Long start = System.currentTimeMillis();
-        Integer limit = 100;
-        for (int i = 0; i < limit; i++) {
+        int limit = 1000;
+        int threads = 1;
+        for (int j = 0; j < limit; j++) {
             Integer a = (int) (Math.random() * 100);
             Integer b = (int) (Math.random() * 100);
             Integer result = remoteCalculator.add(a, b);
@@ -57,8 +66,8 @@ public class MqttDrpcClientBenchmarkIntegrationTest {
         }
         Long diff = System.currentTimeMillis() - start;
         // divive the microsecond difference in time by twice the limit, to account for regular as well as callback messages being sent
-        Long micros = TimeUnit.MILLISECONDS.toMicros(diff) / (limit * 2);
-        LOG.info("Messages sent       : {}", limit * 2);
+        Long micros = TimeUnit.MILLISECONDS.toMicros(diff) / (threads * limit * 2);
+        LOG.info("Messages sent       : {}", threads * limit * 2);
         LOG.info("Time per message    : {} microseconds", micros);
         LOG.info("Messages per second : {}", TimeUnit.SECONDS.toMicros(1) / micros);
     }
