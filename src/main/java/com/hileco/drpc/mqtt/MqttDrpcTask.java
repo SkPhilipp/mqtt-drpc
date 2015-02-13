@@ -3,7 +3,7 @@ package com.hileco.drpc.mqtt;
 import java.util.concurrent.ExecutorService;
 
 /**
- * A slight abstraction for concurrency, this class represents a task that can be reattempted and waited for completion.
+ * A slight abstraction for concurrency, this class represents a task that can be reattempted and waited on for completion.
  *
  * @author Philipp Gayret
  */
@@ -28,11 +28,14 @@ public class MqttDrpcTask {
         this.mqttDrpcFailureHandler = mqttDrpcFailureHandler;
         this.taskBody = taskBody;
         this.retries = 0;
-        failure = null;
-        completed = false;
-        monitor = new Object();
+        this.failure = null;
+        this.completed = false;
+        this.monitor = new Object();
     }
 
+    /**
+     * Queues the task for execution. Consults the {@link #mqttDrpcFailureHandler} on failures.
+     */
     public void start() {
         executorService.submit(() -> {
             try {
@@ -57,8 +60,7 @@ public class MqttDrpcTask {
     }
 
     /**
-     * This method waits for the successful completion of the task, or throws a {@link MqttDrpcRuntimeException} if the
-     * failure handler decides the task is no longer worth retrying.
+     * Waits for the completion of the task, or throws a {@link MqttDrpcRuntimeException} when the task failed.
      */
     public void join() {
         synchronized (this.monitor) {
@@ -76,7 +78,7 @@ public class MqttDrpcTask {
     }
 
     /**
-     * @return the amount of times the task has been resubmitted for execution
+     * @return amount of resubmits to execution queue
      */
     public int getRetries() {
         return retries;

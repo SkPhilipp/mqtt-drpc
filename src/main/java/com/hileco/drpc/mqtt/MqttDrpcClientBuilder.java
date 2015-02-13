@@ -1,8 +1,8 @@
 package com.hileco.drpc.mqtt;
 
+import com.hileco.drpc.generic.JSONStreamer;
+import com.hileco.drpc.generic.RpcPacketStreamer;
 import com.hileco.drpc.generic.ServiceHost;
-import com.hileco.drpc.reflection.ArgumentsStreamer;
-import com.hileco.drpc.reflection.JSONArgumentsStreamer;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -29,9 +29,10 @@ public class MqttDrpcClientBuilder {
     private MqttClientPersistence mqttClientPersistence;
     private MqttDrpcFailureHandler mqttDrpcFailureHandler;
     private ExecutorService executorService;
+    private ServiceHost callbackHost;
+    private RpcPacketStreamer rpcPacketStreamer;
     private MqttDrpcTopicBuilder topicBuilder;
     private ServiceHost serviceHost;
-    private ArgumentsStreamer argumentsStreamer;
     private int keepaliveInterval;
     private int qualityOfServiceLevel;
 
@@ -41,14 +42,15 @@ public class MqttDrpcClientBuilder {
         this.executorService = Executors.newScheduledThreadPool(DEFAULT_MAX_THREADS);
         this.topicBuilder = new MqttDrpcTopicBuilder();
         this.serviceHost = new ServiceHost();
-        this.argumentsStreamer = new JSONArgumentsStreamer();
+        this.callbackHost = new ServiceHost();
+        this.rpcPacketStreamer = new RpcPacketStreamer(new JSONStreamer());
         this.keepaliveInterval = DEFAULT_SECONDS_KEEP_ALIVE_INTERVAL;
         this.qualityOfServiceLevel = DEFAULT_LEVEL_QUALITY_OF_SERVICE;
         this.mqttDrpcFailureHandler = new MqttDrpcFailureHandler() {
             @Override
             public boolean shouldRetry(Exception cause, MqttDrpcTask task) {
-                if(cause instanceof MqttException) {
-                    if(((MqttException)cause).getReasonCode() == 32202) {
+                if (cause instanceof MqttException) {
+                    if (((MqttException) cause).getReasonCode() == 32202) {
                         return true;
                     }
                 }
@@ -92,11 +94,6 @@ public class MqttDrpcClientBuilder {
         return this;
     }
 
-    public MqttDrpcClientBuilder withArgumentsStreamer(ArgumentsStreamer argumentsStreamer) {
-        this.argumentsStreamer = argumentsStreamer;
-        return this;
-    }
-
     public MqttDrpcClientBuilder withKeepaliveInterval(int keepaliveInterval) {
         this.keepaliveInterval = keepaliveInterval;
         return this;
@@ -107,10 +104,21 @@ public class MqttDrpcClientBuilder {
         return this;
     }
 
+    public MqttDrpcClientBuilder withRpcPacketStreamer(RpcPacketStreamer rpcPacketStreamer) {
+        this.rpcPacketStreamer = rpcPacketStreamer;
+        return this;
+    }
+
+    public MqttDrpcClientBuilder withCallbackHost(ServiceHost callbackHost) {
+        this.callbackHost = callbackHost;
+        return this;
+    }
+
     public MqttDrpcClient build(String broker) throws MqttException {
         MqttClient mqttClient = new MqttClient(broker, clientId, mqttClientPersistence);
         mqttClient.setTimeToWait(DEFAULT_MILLISECONDS_TIME_TO_WAIT_LIMIT);
-        return new MqttDrpcClient(mqttDrpcFailureHandler, executorService, mqttClient, topicBuilder, serviceHost, argumentsStreamer, keepaliveInterval, qualityOfServiceLevel);
+        return new MqttDrpcClient(mqttDrpcFailureHandler, executorService, mqttClient, topicBuilder,
+                serviceHost, callbackHost, rpcPacketStreamer, keepaliveInterval, qualityOfServiceLevel);
     }
 
 }

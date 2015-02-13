@@ -22,8 +22,8 @@ public class MqttDrpcTopicBuilder {
         return String.format("%s/%s/%s/%s", SERVICE, service.getName(), operation.getName(), identifier);
     }
 
-    public String callback(String messageId) {
-        return String.format("%s/%s", CALLBACK, messageId);
+    public String callback(String correlationId) {
+        return String.format("%s/%s", CALLBACK, correlationId);
     }
 
 }

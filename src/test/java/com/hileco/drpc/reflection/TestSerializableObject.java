@@ -3,7 +3,7 @@ package com.hileco.drpc.reflection;
 import java.io.Serializable;
 
 /**
- * An example of a basic object useable for serialization by an {@link com.hileco.drpc.reflection.ArgumentsStreamer}.
+ * An example of a basic object useable for serialization by an {@link com.hileco.drpc.generic.Streamer}.
  *
  * @author Philipp Gayret
  */

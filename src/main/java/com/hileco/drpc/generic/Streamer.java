@@ -1,4 +1,4 @@
-package com.hileco.drpc.reflection;
+package com.hileco.drpc.generic;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author Philipp Gayret
  */
-public abstract class ArgumentsStreamer {
+public abstract class Streamer {
 
     /**
      * Converts a byte stream to an array of objects of type of the given elementTypes.

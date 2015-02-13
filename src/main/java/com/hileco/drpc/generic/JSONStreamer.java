@@ -1,4 +1,4 @@
-package com.hileco.drpc.reflection;
+package com.hileco.drpc.generic;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -16,7 +16,7 @@ import java.util.List;
  *
  * @author Philipp Gayret
  */
-public class JSONArgumentsStreamer extends ArgumentsStreamer {
+public class JSONStreamer extends Streamer {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final JsonFactory FACTORY = OBJECT_MAPPER.getFactory();

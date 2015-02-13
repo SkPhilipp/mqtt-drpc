@@ -55,6 +55,7 @@ public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
                 }
                 listener.close();
             }
+            // TODO: Cannot just return null here, should throw an exception (!)
             return results[0] == NO_RESULT ? null : results[0];
         });
     }

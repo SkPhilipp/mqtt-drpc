@@ -1,16 +1,16 @@
 package com.hileco.drpc.mqtt;
 
-import com.hileco.drpc.generic.MessageReceiver;
-import com.hileco.drpc.generic.ServiceConnector;
-import com.hileco.drpc.generic.ServiceHost;
-import com.hileco.drpc.generic.SilentCloseable;
-import com.hileco.drpc.reflection.ArgumentsStreamer;
+import com.hileco.drpc.generic.*;
 import com.hileco.drpc.reflection.ProxyServiceConnector;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -23,20 +23,21 @@ import java.util.function.Consumer;
  */
 public class MqttDrpcClient implements MqttCallback {
 
+    private final ServiceHost callbackHost;
     private final ServiceHost serviceHost;
     private final MqttDrpcTopicBuilder topicBuilder;
-    private final ArgumentsStreamer argumentsStreamer;
     private final MqttClient mqttClient;
-    private ExecutorService executorService;
-    private MqttDrpcFailureHandler mqttDrpcFailureHandler;
-    private int keepaliveInterval;
-    private int qualityOfServiceLevel;
+    private final RpcPacketStreamer rpcPacketStreamer;
+    private final ExecutorService executorService;
+    private final MqttDrpcFailureHandler mqttDrpcFailureHandler;
+    private final int keepaliveInterval;
+    private final int qualityOfServiceLevel;
 
     /**
-     * Creates a new MqttDrpcClient, the recommended way to obtain an instance is using the {@link com.hileco.drpc.mqtt.MqttDrpcClientBuilder}
+     * The recommended way to create an instance is with {@link com.hileco.drpc.mqtt.MqttDrpcClientBuilder}.
      */
     public MqttDrpcClient(MqttDrpcFailureHandler mqttDrpcFailureHandler, ExecutorService executorService, MqttClient mqttClient,
-                          MqttDrpcTopicBuilder topicBuilder, ServiceHost serviceHost, ArgumentsStreamer argumentsStreamer,
+                          MqttDrpcTopicBuilder topicBuilder, ServiceHost serviceHost, ServiceHost callbackHost, RpcPacketStreamer rpcPacketStreamer,
                           int keepaliveInterval, int qualityOfServiceLevel) {
         this.keepaliveInterval = keepaliveInterval;
         this.qualityOfServiceLevel = qualityOfServiceLevel;
@@ -44,9 +45,17 @@ public class MqttDrpcClient implements MqttCallback {
         this.executorService = executorService;
         this.topicBuilder = topicBuilder;
         this.serviceHost = serviceHost;
-        this.argumentsStreamer = argumentsStreamer;
+        this.rpcPacketStreamer = rpcPacketStreamer;
+        this.callbackHost = callbackHost;
         this.mqttClient = mqttClient;
         this.mqttClient.setCallback(this);
+        String callback = this.topicBuilder.callback(this.mqttClient.getClientId());
+        this.serviceHost.register(callback, (topic, content) -> {
+            content.mark(Integer.MAX_VALUE);
+            RpcResponsePacket rpcResponsePacketHeaders = rpcPacketStreamer.readResponse(content, Collections.emptyList());
+            content.reset();
+            callbackHost.accept(rpcResponsePacketHeaders.getCorrelationId(), content);
+        });
     }
 
     /**
@@ -73,65 +82,23 @@ public class MqttDrpcClient implements MqttCallback {
     public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
     }
 
-    // TODO: Move connection code to outside of mqtt drpc client ? failure handler should be in charge ? maybe a connection manager ?
+    /**
+     * Connects the internal {@link #mqttClient} to the broker, automatically begins listening for callbacks.
+     *
+     * @throws MqttException
+     */
     public void connect() throws MqttException {
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setCleanSession(true);
         connOpts.setKeepAliveInterval(keepaliveInterval);
         mqttClient.connect(connOpts);
+        String callbacks = topicBuilder.callback(this.mqttClient.getClientId());
+        mqttClient.unsubscribe(callbacks);
+        mqttClient.subscribe(callbacks);
     }
 
     /**
-     * Parses the given content stream as the given body types.
-     *
-     * @param content   a readable content stream
-     * @param bodyTypes types to parse the content stream as
-     * @return a packet representing the parsed content
-     * @throws IOException on parsing failures
-     */
-    private MqttDrpcPacket read(InputStream content, List<Class<?>> bodyTypes) throws IOException {
-        Object[] deserializedPacket = argumentsStreamer.deserializeFrom(content, MqttDrpcPacket.HEADER_ENTRIES, bodyTypes);
-        MqttDrpcPacket drpcPacket = new MqttDrpcPacket();
-        drpcPacket.setMessageId((String) deserializedPacket[0]);
-        drpcPacket.setBody(Arrays.copyOfRange(deserializedPacket, MqttDrpcPacket.HEADER_ENTRIES.size(), deserializedPacket.length));
-        return drpcPacket;
-    }
-
-    /**
-     * Writes the given packet to the given output stream.
-     * <p>
-     * The packet written can be read back using {@link #read(java.io.InputStream, java.util.List)}
-     *
-     * @param outputStream a writeable stream
-     * @param packet       the packet to write
-     * @throws IOException
-     */
-    private void write(OutputStream outputStream, MqttDrpcPacket packet) throws IOException {
-        Object[] headers = new Object[]{packet.getMessageId()};
-        argumentsStreamer.serializeTo(outputStream, Arrays.asList(headers), Arrays.asList(packet.getBody()));
-    }
-
-    /**
-     * Constructs an {@link org.eclipse.paho.client.mqttv3.MqttMessage} out of packet metadata and body.
-     *
-     * @param messageId a unique message id
-     * @param content   message body
-     * @return sendable message
-     * @throws IOException when serialization of given content fails
-     */
-    private MqttMessage build(String messageId, Object[] content) throws IOException {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        MqttDrpcPacket packet = new MqttDrpcPacket();
-        packet.setMessageId(messageId);
-        packet.setBody(content == null ? new Object[]{} : content);
-        write(outputStream, packet);
-        MqttMessage message = new MqttMessage(outputStream.toByteArray());
-        message.setQos(qualityOfServiceLevel);
-        return message;
-    }
-
-    /**
-     * Creates a new task out of a given task body, then schedules it, and awaits its completion.
+     * Creates a new task out of a given task body, schedules it, and awaits its completion.
      *
      * @param taskBody task body to execute
      */
@@ -159,12 +126,15 @@ public class MqttDrpcClient implements MqttCallback {
             MessageReceiver receiver = (String topic, InputStream content) -> {
                 try {
                     List<Class<?>> parameterTypes = Arrays.asList(method.getParameterTypes());
-                    MqttDrpcPacket packet = read(content, parameterTypes);
+                    RpcRequestPacket request = rpcPacketStreamer.readRequest(content, parameterTypes);
                     try {
-                        Object result = method.invoke(implementation, packet.getBody());
-                        String callback = topicBuilder.callback(packet.getMessageId());
-                        String id = UUID.randomUUID().toString();
-                        MqttMessage message = build(id, new Object[]{result});
+                        Object result = method.invoke(implementation, request.getBody());
+                        String callback = topicBuilder.callback(request.getClientId());
+                        RpcResponsePacket response = new RpcResponsePacket(request.getCorrelationId(), new Object[]{result});
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        rpcPacketStreamer.writeResponse(outputStream, response);
+                        MqttMessage message = new MqttMessage(outputStream.toByteArray());
+                        message.setQos(qualityOfServiceLevel);
                         await(() -> mqttClient.publish(callback, message));
                     } catch (ReflectiveOperationException e) {
                         throw new MqttDrpcRuntimeException("Erred invoking a service method.", e);
@@ -204,29 +174,32 @@ public class MqttDrpcClient implements MqttCallback {
         return new ProxyServiceConnector<T>(type) {
             @Override
             public <R> SilentCloseable call(Class<?> type, Method method, Object[] arguments, Consumer<R> consumer) {
-                String messageId = UUID.randomUUID().toString();
-                String topic = topicBuilder.operation(type, method);
-                String callback = topicBuilder.callback(messageId);
-                await(() -> mqttClient.subscribe(new String[]{callback}));
-                SilentCloseable closeable = serviceHost.register(callback, (callbackMetadata, content) -> {
+                String correlationId = UUID.randomUUID().toString();
+                SilentCloseable closeable = callbackHost.register(correlationId, (callbackMetadata, content) -> {
                     if (method.getReturnType() != void.class) {
                         List<Class<?>> bodyTypes = Arrays.asList(method.getReturnType());
-                        MqttDrpcPacket packet = read(content, bodyTypes);
+                        RpcResponsePacket packet = rpcPacketStreamer.readResponse(content, bodyTypes);
                         Object result = packet.getBody()[0];
                         consumer.accept((R) result);
                     } else {
                         consumer.accept(null);
                     }
-                    await(() -> mqttClient.unsubscribe(new String[]{callback}));
                 });
                 try {
-                    MqttMessage message = build(messageId, arguments);
+                    RpcRequestPacket packet = new RpcRequestPacket();
+                    packet.setClientId(mqttClient.getClientId());
+                    packet.setCorrelationId(correlationId);
+                    packet.setBody(arguments == null ? new Object[]{} : arguments);
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    rpcPacketStreamer.writeRequest(outputStream, packet);
+                    MqttMessage message = new MqttMessage(outputStream.toByteArray());
+                    message.setQos(qualityOfServiceLevel);
+                    String topic = topicBuilder.operation(type, method);
                     await(() -> mqttClient.publish(topic, message));
                 } catch (IOException e) {
                     throw new MqttDrpcRuntimeException("Serialization of arguments to message body failed.", e);
                 }
                 return closeable;
-
             }
         };
     }

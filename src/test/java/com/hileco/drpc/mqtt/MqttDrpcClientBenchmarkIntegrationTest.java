@@ -24,27 +24,11 @@ public class MqttDrpcClientBenchmarkIntegrationTest {
      * Verifies that a client can publish a service at a broker and call its own service via the broker.
      * <p>
      * Performs this verification serially until a limit is reached and then outputs some basic benchmarks.
-     * <p>
-     * Benchmark does not account for:
-     * - Quality of service messages
-     * - Subscriptions made ( 1 per callback )
-     * <p>
-     * Bechmark counts messages as well as and callback messages.
-     * <p>
-     * Each service invocation includes:
-     * - Arguments serialisation
-     * - Subscribe to callback topic on broker as client
-     * - Transfer to broker as client, on service topic
-     * - Processing by broker
-     * - Receiving from broker as service
-     * - Arguments deserialisation
-     * - Service implementation call
-     * - Result serialisation
-     * - Transfer to broker as service, on callback topic
-     * - Receiving from broker as client
-     * - Result deserialisation
-     * - Unsubscribing from callback topic on broker as client
-     * - Returning result
+     *
+     * Client --(request)--> Broker --(request)--> Service
+     *                                                |
+     * Client <-(response)-- Broker <--(response)----/
+     *
      */
     @Ignore(value = "Integration test, relies on a local broker")
     @Test
@@ -56,8 +40,7 @@ public class MqttDrpcClientBenchmarkIntegrationTest {
         CalculatorService remoteCalculator = connector.connect(identifier);
         LOG.info("Starting test, this may take a while");
         Long start = System.currentTimeMillis();
-        int limit = 1000;
-        int threads = 1;
+        int limit = 10000;
         for (int j = 0; j < limit; j++) {
             Integer a = (int) (Math.random() * 100);
             Integer b = (int) (Math.random() * 100);
@@ -65,11 +48,11 @@ public class MqttDrpcClientBenchmarkIntegrationTest {
             Assert.assertTrue(result == a + b);
         }
         Long diff = System.currentTimeMillis() - start;
-        // divive the microsecond difference in time by twice the limit, to account for regular as well as callback messages being sent
-        Long micros = TimeUnit.MILLISECONDS.toMicros(diff) / (threads * limit * 2);
-        LOG.info("Messages sent       : {}", threads * limit * 2);
-        LOG.info("Time per message    : {} microseconds", micros);
-        LOG.info("Messages per second : {}", TimeUnit.SECONDS.toMicros(1) / micros);
+        // multiply by two, as a message is sent both per request and response
+        Long micros = TimeUnit.MILLISECONDS.toMicros(diff) / (limit * 2);
+        LOG.info("Messages sent: {}", limit * 2);
+        LOG.info("Time per message: {} microseconds", micros);
+        LOG.info("Service invocations per second: {}", TimeUnit.SECONDS.toMicros(1) / micros);
     }
 
 }
