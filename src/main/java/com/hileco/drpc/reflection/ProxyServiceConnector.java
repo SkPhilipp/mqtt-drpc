@@ -18,8 +18,6 @@ public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
 
     private static final Object NO_RESULT = new Object();
 
-    public static final int TIMEOUT = 60000;
-
     private final Class<T> type;
 
     public ProxyServiceConnector(Class<T> type) {
@@ -50,13 +48,12 @@ public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
                 }
             });
             synchronized (results) {
-                if (results[0] == NO_RESULT) {
-                    results.wait(TIMEOUT);
+                while (results[0] == NO_RESULT) {
+                    results.wait();
                 }
                 listener.close();
             }
-            // TODO: Cannot just return null here, should throw an exception (!)
-            return results[0] == NO_RESULT ? null : results[0];
+            return results[0];
         });
     }
 
