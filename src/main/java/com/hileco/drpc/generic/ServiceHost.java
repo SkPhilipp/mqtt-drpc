@@ -1,11 +1,11 @@
 package com.hileco.drpc.generic;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A simple service host, allowing for services to be registered by identifier, and connected to.
@@ -13,8 +13,6 @@ import java.util.*;
  * @author Philipp Gayret
  */
 public class ServiceHost {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ServiceHost.class);
 
     private final Map<String, List<MessageReceiver>> consumers;
 
@@ -59,13 +57,9 @@ public class ServiceHost {
         List<MessageReceiver> messageReceivers = this.consumers.get(topic);
         if (messageReceivers != null) {
             List<MessageReceiver> unmodifyableCopy = new ArrayList<>(messageReceivers);
-            unmodifyableCopy.forEach(receiver -> {
-                try {
-                    receiver.accept(topic, content);
-                } catch (IOException e) {
-                    LOG.error("Receiver erred", e);
-                }
-            });
+            for (MessageReceiver messageReceiver : unmodifyableCopy) {
+                messageReceiver.accept(topic, content);
+            }
         }
     }
 

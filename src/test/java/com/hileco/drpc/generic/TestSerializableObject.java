@@ -1,4 +1,4 @@
-package com.hileco.drpc.reflection;
+package com.hileco.drpc.generic;
 
 import java.io.Serializable;
 

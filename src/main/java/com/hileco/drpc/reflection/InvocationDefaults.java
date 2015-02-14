@@ -13,9 +13,6 @@ import java.util.Map;
  */
 public final class InvocationDefaults {
 
-    private InvocationDefaults() {
-    }
-
     private static final Map<Class<?>, Object> DEFAULTS;
 
     static {

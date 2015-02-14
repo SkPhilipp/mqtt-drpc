@@ -1,7 +1,5 @@
-package com.hileco.drpc.reflection;
+package com.hileco.drpc.generic;
 
-import com.hileco.drpc.generic.JSONStreamer;
-import com.hileco.drpc.generic.Streamer;
 import org.junit.Assert;
 import org.junit.Test;
 
