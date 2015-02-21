@@ -3,7 +3,7 @@
 This library lets you make distributed remote procedure calls and get results back, with plain Java.
 
 - Requires Java 8.
-- Remote procedure calls go over MQTT, using Eclipse Pato.
+- Remote procedure calls go over MQTT, using Eclipse Paho.
 - Remote procedure calls' content is streamed in JSON.
 - You can publish and call standard Java interfaces.
 - Source code builds with maven.
