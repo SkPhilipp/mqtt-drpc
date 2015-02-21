@@ -30,7 +30,7 @@ public class MqttDrpcClient implements MqttCallback {
     private final RpcPacketStreamer rpcPacketStreamer;
     private final ExecutorService executorService;
     private final MqttDrpcFailureHandler mqttDrpcFailureHandler;
-    private final int keepaliveInterval;
+    private final MqttConnectOptions connectOptions;
     private final int qualityOfServiceLevel;
 
     /**
@@ -38,8 +38,8 @@ public class MqttDrpcClient implements MqttCallback {
      */
     public MqttDrpcClient(MqttDrpcFailureHandler mqttDrpcFailureHandler, ExecutorService executorService, MqttClient mqttClient,
                           MqttDrpcTopicBuilder topicBuilder, ServiceHost serviceHost, ServiceHost callbackHost, RpcPacketStreamer rpcPacketStreamer,
-                          int keepaliveInterval, int qualityOfServiceLevel) {
-        this.keepaliveInterval = keepaliveInterval;
+                          MqttConnectOptions connectOptions, int qualityOfServiceLevel) {
+        this.connectOptions = connectOptions;
         this.qualityOfServiceLevel = qualityOfServiceLevel;
         this.mqttDrpcFailureHandler = mqttDrpcFailureHandler;
         this.executorService = executorService;
@@ -88,10 +88,7 @@ public class MqttDrpcClient implements MqttCallback {
      * @throws MqttException
      */
     public void connect() throws MqttException {
-        MqttConnectOptions connOpts = new MqttConnectOptions();
-        connOpts.setCleanSession(true);
-        connOpts.setKeepAliveInterval(keepaliveInterval);
-        mqttClient.connect(connOpts);
+        mqttClient.connect(connectOptions);
         String callbacks = topicBuilder.callback(this.mqttClient.getClientId());
         mqttClient.unsubscribe(callbacks);
         mqttClient.subscribe(callbacks);

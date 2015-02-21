@@ -5,6 +5,7 @@ import com.hileco.drpc.generic.RpcPacketStreamer;
 import com.hileco.drpc.generic.ServiceHost;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -35,6 +36,8 @@ public class MqttDrpcClientBuilder {
     private ServiceHost serviceHost;
     private int keepaliveInterval;
     private int qualityOfServiceLevel;
+    private MqttConnectOptions connectOptions;
+
 
     public MqttDrpcClientBuilder() throws MqttException {
         this.clientId = UUID.randomUUID().toString();
@@ -46,6 +49,10 @@ public class MqttDrpcClientBuilder {
         this.rpcPacketStreamer = new RpcPacketStreamer(new JSONStreamer());
         this.keepaliveInterval = DEFAULT_SECONDS_KEEP_ALIVE_INTERVAL;
         this.qualityOfServiceLevel = DEFAULT_LEVEL_QUALITY_OF_SERVICE;
+        this.connectOptions = new MqttConnectOptions();
+        this.connectOptions.setCleanSession(true);
+        this.connectOptions.setKeepAliveInterval(keepaliveInterval);
+
         this.mqttDrpcFailureHandler = new MqttDrpcFailureHandler() {
             @Override
             public boolean shouldRetry(Exception cause, MqttDrpcTask task) {
@@ -114,11 +121,16 @@ public class MqttDrpcClientBuilder {
         return this;
     }
 
+    public MqttDrpcClientBuilder withConnectOptions(MqttConnectOptions connectOptions) {
+        this.connectOptions = connectOptions;
+        return this;
+    }
+
     public MqttDrpcClient build(String broker) throws MqttException {
         MqttClient mqttClient = new MqttClient(broker, clientId, mqttClientPersistence);
         mqttClient.setTimeToWait(DEFAULT_MILLISECONDS_TIME_TO_WAIT_LIMIT);
         return new MqttDrpcClient(mqttDrpcFailureHandler, executorService, mqttClient, topicBuilder,
-                serviceHost, callbackHost, rpcPacketStreamer, keepaliveInterval, qualityOfServiceLevel);
+                serviceHost, callbackHost, rpcPacketStreamer, connectOptions, qualityOfServiceLevel);
     }
 
 }
