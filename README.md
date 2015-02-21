@@ -29,7 +29,8 @@ public interface CalculatorService {
 Instantiate a client, the client will require an MQTT broker URL.
 
 ```java
-MqttDrpcClient client = new MqttDrpcClient("tcp://iot.eclipse.org:1883");
+MqttDrpcClient client = new MqttDrpcClientBuilder().build("tcp://iot.eclipse.org:1883");
+client.connect();
 ```
 
 Publish the service, this will create MQTT subscriptions.
@@ -45,7 +46,8 @@ client.publish(CalculatorService.class, // functionality to expose
 Instantiate a client, the client will require an MQTT broker URL.
 
 ```java
-MqttDrpcClient client = new MqttDrpcClient("tcp://iot.eclipse.org:1883");
+MqttDrpcClient client = new MqttDrpcClientBuilder().build("tcp://iot.eclipse.org:1883");
+client.connect();
 ```
 
 Obtain a connector for your interface, this will allow you to make targeted and distributed remote procedure calls using the client's configuration.
