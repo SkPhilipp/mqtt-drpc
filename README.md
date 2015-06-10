@@ -66,6 +66,6 @@ connector.drpc(d -> d.calculate(1, 2),
 And targeted calls.
 
 ```java
-CalculatorService remoteCalculator = connector.connect("remote-calculator"); // connect to the calculator identified by the id we've registered with at the service-side
+CalculatorService remoteCalculator = connector.connect("remote-calculator"); // connect to the calculator identified by the id we've registered with at the service side
 remoteCalculator.calculate(1,2);
 ```
