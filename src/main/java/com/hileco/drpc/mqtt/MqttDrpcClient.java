@@ -170,7 +170,7 @@ public class MqttDrpcClient implements MqttCallback {
     public <T> ServiceConnector<T> connector(Class<T> type) {
         return new ProxyServiceConnector<T>(type) {
             @Override
-            public <R> SilentCloseable call(Class<?> type, Method method, Object[] arguments, Consumer<R> consumer) {
+            public <R> SilentCloseable call(Class<?> type, Method method, String identifier, Object[] arguments, Consumer<R> consumer) {
                 String correlationId = UUID.randomUUID().toString();
                 SilentCloseable closeable = callbackHost.register(correlationId, (callbackMetadata, content) -> {
                     if (method.getReturnType() != void.class) {
@@ -191,7 +191,7 @@ public class MqttDrpcClient implements MqttCallback {
                     rpcPacketStreamer.writeRequest(outputStream, packet);
                     MqttMessage message = new MqttMessage(outputStream.toByteArray());
                     message.setQos(qualityOfServiceLevel);
-                    String topic = topicBuilder.operation(type, method);
+                    String topic = identifier == null ? topicBuilder.operation(type, method) : topicBuilder.operation(type, method, identifier);
                     await(() -> mqttClient.publish(topic, message));
                 } catch (IOException e) {
                     throw new MqttDrpcRuntimeException("Serialization of arguments to message body failed.", e);

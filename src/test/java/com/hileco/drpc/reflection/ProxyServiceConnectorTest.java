@@ -23,7 +23,7 @@ public class ProxyServiceConnectorTest {
         ProxyServiceConnector<TestInterface> connector = new ProxyServiceConnector<TestInterface>(TestInterface.class) {
             @Override
             @SuppressWarnings("unchecked")
-            public <R> SilentCloseable call(Class<?> type, Method method, Object[] arguments, Consumer<R> consumer) {
+            public <R> SilentCloseable call(Class<?> type, Method method, String identifier, Object[] arguments, Consumer<R> consumer) {
                 Thread thread = new Thread(() -> {
                     try {
                         Thread.sleep(5);
@@ -51,7 +51,7 @@ public class ProxyServiceConnectorTest {
         ProxyServiceConnector<TestInterface> connector = new ProxyServiceConnector<TestInterface>(TestInterface.class) {
             @Override
             @SuppressWarnings("unchecked")
-            public <R> SilentCloseable call(Class<?> type, Method method, Object[] arguments, Consumer<R> consumer) {
+            public <R> SilentCloseable call(Class<?> type, Method method, String identifier, Object[] arguments, Consumer<R> consumer) {
                 Integer result = EXPECTED_RESULT;
                 consumer.accept((R) result);
                 return () -> {
@@ -72,7 +72,7 @@ public class ProxyServiceConnectorTest {
         ProxyServiceConnector<TestInterface> connector = new ProxyServiceConnector<TestInterface>(TestInterface.class) {
             @Override
             @SuppressWarnings("unchecked")
-            public <R> SilentCloseable call(Class<?> type, Method method, Object[] arguments, Consumer<R> consumer) {
+            public <R> SilentCloseable call(Class<?> type, Method method, String identifier, Object[] arguments, Consumer<R> consumer) {
                 Integer result = EXPECTED_RESULT;
                 consumer.accept((R) result);
                 consumer.accept((R) result);

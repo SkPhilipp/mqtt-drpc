@@ -30,7 +30,7 @@ public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
     @Override
     public <R> SilentCloseable drpc(Function<T, R> invoker, Consumer<R> consumer) {
         Invocation invocation = Invocation.one(type, invoker::apply);
-        return this.call(type, invocation.getMethod(), invocation.getArguments(), consumer);
+        return this.call(type, invocation.getMethod(), null, invocation.getArguments(), consumer);
     }
 
     /**
@@ -41,7 +41,7 @@ public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
     public T connect(String identifier) {
         return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, (proxy, method, arguments) -> {
             Object[] results = new Object[]{NO_RESULT};
-            SilentCloseable listener = this.call(type, method, arguments, (result) -> {
+            SilentCloseable listener = this.call(type, method, identifier, arguments, (result) -> {
                 synchronized (results) {
                     results[0] = result;
                     results.notifyAll();
@@ -60,13 +60,14 @@ public abstract class ProxyServiceConnector<T> implements ServiceConnector<T> {
     /**
      * Should perform a remote procedure call, any responses must be forwarded to the consumer.
      *
-     * @param type      service connector type
-     * @param method    invoked method
-     * @param arguments invocation arguments
-     * @param consumer  response handler
-     * @param <R>       response type
+     * @param type       service connector type
+     * @param method     invoked method
+     * @param identifier service identifier, if calling a service with an idetifier. leave null otherwise
+     * @param arguments  invocation arguments
+     * @param consumer   response handler
+     * @param <R>        response type
      * @return {@link SilentCloseable} used to remove the consumer as a response handler.
      */
-    public abstract <R> SilentCloseable call(Class<?> type, Method method, Object[] arguments, Consumer<R> consumer);
+    public abstract <R> SilentCloseable call(Class<?> type, Method method, String identifier, Object[] arguments, Consumer<R> consumer);
 
 }
