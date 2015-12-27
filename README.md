@@ -60,7 +60,7 @@ With the connector we can make distributed calls, with regular interfaces, and n
 
 ```java
 connector.drpc(d -> d.calculate(1, 2),
-               r -> LOG.info("CalculatorService#calculate(1,2) = {}", r));
+               r -> System.out.println("CalculatorService#calculate(1,2) = " + r));
 ```
 
 And targeted calls.
