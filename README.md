@@ -81,7 +81,7 @@ To publish a service, a service must subscribe itself to multiple topics. Two fo
 - `s/PACKAGE.INTERFACE/METHOD` for global calls.
 - `s/PACKAGE.INTERFACE/METHOD/IDENTIFIER` for calls by identifier.
 
-For example using the `CalculatorService` example from earlier, with its method `calculate`, and identifier `remote-calculator. The topics to subscribe on will be:
+For example using the `CalculatorService` example from earlier, with its method `calculate`, and identifier `remote-calculator`. The topics to subscribe on will be:
 
 - `s/com.hileco.mqtt.example.CalculatorService/calculate` for global calls.
 - `s/com.hileco.mqtt.example.CalculatorService/calculate/remote-calculator` for calls by identifier.
