@@ -115,4 +115,4 @@ To then essentially invoke `calculate(1, 2)` on all published calculators, a cli
 The service must then respond on the callback topic:
 
 - On the topic of the callback, for example: `c/c744e0a4-2274-4a4d-948b-4fd4e74ecc86`
-- With body containing request UUID, and result, for example: ["3abfe6a4-1d48-40e5-a904-70b1f9267463",3]
+- With body containing request UUID, and result, for example: `["3abfe6a4-1d48-40e5-a904-70b1f9267463",3]`
